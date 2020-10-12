@@ -17,11 +17,12 @@ class dehaze:
     
     def getAtmosphericLight(self):
         image=self.image
-        darkchannel_prior=self.getDarkChannel
+        top_position=self.top_p
+        darkchannel_prior=self.getDarkChannel()
         dimension_x, dimension_y = darkchannel_prior.shape
         flat_image = image.reshape(dimension_x * dimension_y, 3)
         flat_darkchannel_prior = darkchannel_prior.ravel()
-        index_found = (-flat_darkchannel_prior).argsort()[:int(dimension_x * dimension_y * top_p)]
+        index_found = (-flat_darkchannel_prior).argsort()[:int(dimension_x * dimension_y * top_position)]
         return np.max(flat_image.take(index_found, axis=0), axis=0)
     
     def getRawTransmission(self):
@@ -36,14 +37,13 @@ class dehaze:
         return refinedT
 
     def getRadiance(self):
-        refinedT=self.getRefineTransmission
-        atmosphere=self.getAtmosphericLight
+        refinedT=self.getRefineTransmission()
+        atmosphere=self.getAtmosphericLight()
         image=self.image
         clipped_t = np.clip(refinedT, a_min=thresholdT, a_max=1.0)
         tiled_t = np.zeros_like(image, dtype=np.float32) 
         for i in range(3):
             tiled_t[:, :, i] = clipped_t
-        show_img('refinedT', clipped_t, cmap='gray')
         radiance = np.clip((image - atmosphere) / tiled_t + atmosphere, a_min=0, a_max=255)
         return radiance
 
