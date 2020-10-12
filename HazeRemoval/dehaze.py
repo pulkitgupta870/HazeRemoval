@@ -16,8 +16,11 @@ class dehaze:
         print(self.image)
     
     def getAtmosphericLight(self):
-        print("Code Here")
-        return 1
+        dimension_x, dimension_y = darkchannel_prior.shape
+        flat_image = image.reshape(dimension_x * dimension_y, 3)
+        flat_darkchannel_prior = darkchannel_prior.ravel()
+        index_found = (-flat_darkchannel_prior).argsort()[:int(dimension_x * dimension_y * top_portion)]
+        return np.max(flat_image.take(index_found, axis=0), axis=0)
     
     def getRawTransmission(self):
         atmLight = self.getAtmosphericLight()
